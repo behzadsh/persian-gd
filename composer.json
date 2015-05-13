@@ -1,0 +1,14 @@
+{
+    "name": "quince/persian-gd",
+    "description": "PHP GD library for Persian text support",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Behzad Shabani",
+            "email": "behzad.shabani@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {}
+}
