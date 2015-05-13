@@ -10,5 +10,12 @@
         }
     ],
     "minimum-stability": "stable",
-    "require": {}
+    "autoload": {
+        "psr-4": {
+            "Quince\\PersianGD": "src"
+        }
+    },
+    "require": {
+        "ext-gd": "*"
+    }
 }
