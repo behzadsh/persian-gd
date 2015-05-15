@@ -265,145 +265,13 @@ class PersianStringDecorator {
 	 */
 	protected function process($index, $rtl, $persianNumber)
 	{
-		// Check if current character is not in ignore list
 		if (!$this->shouldBeIgnored($this->current)) {
-			// Current character is a persian character
 			if ($this->isPersianChar($this->current)) {
-				// Previous character is empty, space, or not a persian character
-				if (is_null($this->prev) || $this->prev == ' ' || !$this->isPersianChar($this->prev)) {
-					// Next and previous character are not persian characters
-					if (!$this->isPersianChar($this->next) && !$this->isPersianChar($this->prev)) {
-						$this->prepend($this->current);
-					} else {
-						$this->prepend($this->getFirstJoint($this->current));
-					}
-
-					// continue the parent loop
-					return true;
-				} // Both next and previous characters are persian character
-				elseif ($this->isPersianChar($this->prev) && $this->isPersianChar($this->next)) {
-					if ($this->isDetachedChar($this->prev) && $this->isPersianChar($this->next)) {
-						$this->prepend($this->getFirstJoint($this->current));
-					} else {
-						$this->prepend($this->getMiddleJoint($this->current));
-					}
-
-					// continue the parent loop
-					return true;
-				} // Check if previous character is persian charecter and next character is not
-				elseif ($this->isPersianChar($this->prev) && !$this->isPersianChar($this->next)) {
-					if ($this->isDetachedChar($this->prev)) {
-						$this->prepend($this->current);
-					} else {
-						$this->prepend($this->getLastJoint($this->current));
-					}
-
-					// continue the parent loop
-					return true;
-				}
-			} // Check if the direction is right to left,
-			// and current character is not in persian character list
-			elseif ($rtl) {
-				// Check if current character is an enclosing character
-				if ($this->isEnclosingChars($this->current)) {
-					$this->reverseEnclosing($this->current);
-				} // Check if current character is a number
-
-				if ($this->isNumber($this->current)) {
-					if ($persianNumber) {
-						$this->numberOutput .= $this->persianizeNumbers($this->current);
-					} else {
-						$this->numberOutput = $this->current;
-					}
-
-					$this->setCurrent('');
-				}
-
-				if (!$this->isNumber($this->next)) {
-					if (
-						$this->isEnglishChar($this->current) ||
-						($this->isSpaceOrDot($this->current) && $this->englishOutput != '' && !$this->isPersianChar($this->next))
-					) {
-						$this->englishOutput .= $this->current . $this->numberOutput;
-
-						$this->setCurrent('');
-					} else {
-						if ($this->englishOutput != '') {
-							if ($index + 1 == $this->stringLength()) {
-								$this->setCurrent($this->current . $this->numberOutput);
-							} else {
-								$this->englishOutput .= $this->current . $this->numberOutput;
-							}
-						} else {
-							$this->setCurrent($this->current . $this->numberOutput);
-						}
-					}
-
-					$this->numberOutput = '';
-				}
-
-				if ($this->englishOutput != '' || $this->isFirstLoop($index)) {
-					if (!$this->isPersianChar($this->current)) {
-						if (
-							!$this->isPersianChar($this->next) && $this->next != ' ' &&
-							!$this->isEnclosingChars($this->next)
-						) {
-							$this->englishOutput .= $this->current;
-						} else {
-							if ($this->isEnglishChar($this->getChar($index + 2))) {
-								$this->englishOutput .= $this->current;
-							} else {
-								if (
-									$this->next == ' ' &&
-									($this->isNumber($this->getChar($index + 2)) ||
-									 $this->isEnglishChar($this->getChar($index + 2)))
-								) {
-									$this->englishOutput .= $this->current;
-								} else {
-									$this->prepend($this->englishOutput);
-									$this->englishOutput = '';
-								}
-							}
-						}
-					} else {
-						if ($this->numberOutput) {
-							$this->englishOutput .= $this->numberOutput;
-						} else {
-							$this->prepend($this->englishOutput . $this->current);
-							$this->englishChars = '';
-						}
-					}
-				} else {
-					if (
-						$this->isNumber($this->current) && $this->next == '.' &&
-						$this->isNumber($this->getChar($index + 2))
-					) {
-						$this->englishOutput = $this->current;
-					} else {
-						$this->prepend($this->current);
-					}
-				}
+				$this->processPersianWord();
+			} elseif ($rtl) {
+				$this->processNonPersianWord($index, $persianNumber);
 			} else {
-				if (
-					$this->isPersionSymbols($this->current) ||
-					($this->isPersianChar($this->prev) && $this->isPersianChar($this->next)) ||
-					($this->current == ' ' && $this->isPersianChar($this->next)) ||
-					($this->current == ' ' && $this->isPersianChar($this->prev))
-				) {
-					if ($this->eOutput) {
-						$this->prepend($this->eOutput);
-						$this->eOutput = '';
-					}
-
-					$this->prepend($this->current);
-				} else {
-					$this->eOutput .= $this->current;
-
-					if ($this->isPersianChar($this->next) || $this->next == '') {
-						$this->prepend($this->eOutput);
-						$this->eOutput = '';
-					}
-				}
+				$this->processSymbolsAndOtherChars();
 			}
 		} else {
 			$this->prepend($this->current);
@@ -442,12 +310,189 @@ class PersianStringDecorator {
 		$this->prev = $prev;
 	}
 
+	protected function processPersianWord()
+	{
+		if (is_null($this->prev) || $this->prev == ' ' || !$this->isPersianChar($this->prev)) {
+			return $this->processPersianWordFirstChar();
+		} elseif ($this->isPersianChar($this->prev) && $this->isPersianChar($this->next)) {
+			return $this->processPersianWordMiddleChar();
+		} elseif ($this->isPersianChar($this->prev) && !$this->isPersianChar($this->next)) {
+			return $this->processPersianWordLastChar();
+		}
+	}
+
+	/**
+	 * @return bool
+	 */
+	protected function processPersianWordFirstChar()
+	{
+		// Next and previous character are not persian characters
+		if (!$this->isPersianChar($this->next) && !$this->isPersianChar($this->prev)) {
+			$this->prepend($this->current);
+		} else {
+			$this->prepend($this->getFirstJoint($this->current));
+		}
+
+		// continue the parent loop
+		return true;
+	}
+
+	/**
+	 * @return bool
+	 */
+	protected function processPersianWordMiddleChar()
+	{
+		if ($this->isDetachedChar($this->prev) && $this->isPersianChar($this->next)) {
+			$this->prepend($this->getFirstJoint($this->current));
+		} else {
+			$this->prepend($this->getMiddleJoint($this->current));
+		}
+
+		// continue the parent loop
+		return true;
+	}
+
+	/**
+	 * @return bool
+	 */
+	protected function processPersianWordLastChar()
+	{
+		if ($this->isDetachedChar($this->prev)) {
+			$this->prepend($this->current);
+		} else {
+			$this->prepend($this->getLastJoint($this->current));
+		}
+
+		// continue the parent loop
+		return true;
+	}
+
+	/**
+	 * @param $index
+	 * @param $persianNumber
+	 */
+	protected function processNonPersianWord($index, $persianNumber)
+	{
+		// Check if current character is an enclosing character
+		if ($this->isEnclosingChars($this->current)) {
+			$this->reverseEnclosing($this->current);
+		} // Check if current character is a number
+
+		if ($this->isNumber($this->current)) {
+			$this->processNumber($persianNumber);
+		}
+
+		if (!$this->isNumber($this->next)) {
+			if (
+				$this->isEnglishChar($this->current) ||
+				($this->isSpaceOrDot($this->current) && $this->englishOutput != '' &&
+				 !$this->isPersianChar($this->next))
+			) {
+				$this->englishOutput .= $this->current . $this->numberOutput;
+
+				$this->setCurrent('');
+			} else {
+				if ($this->englishOutput != '') {
+					if ($index + 1 == $this->stringLength()) {
+						$this->setCurrent($this->current . $this->numberOutput);
+					} else {
+						$this->englishOutput .= $this->current . $this->numberOutput;
+					}
+				} else {
+					$this->setCurrent($this->current . $this->numberOutput);
+				}
+			}
+
+			$this->numberOutput = '';
+		}
+
+		if ($this->englishOutput != '' || $this->isFirstLoop($index)) {
+			if (!$this->isPersianChar($this->current)) {
+				if (
+					!$this->isPersianChar($this->next) && $this->next != ' ' &&
+					!$this->isEnclosingChars($this->next)
+				) {
+					$this->englishOutput .= $this->current;
+				} else {
+					if ($this->isEnglishChar($this->getChar($index + 2))) {
+						$this->englishOutput .= $this->current;
+					} else {
+						if (
+							$this->next == ' ' &&
+							($this->isNumber($this->getChar($index + 2)) ||
+							 $this->isEnglishChar($this->getChar($index + 2)))
+						) {
+							$this->englishOutput .= $this->current;
+						} else {
+							$this->prepend($this->englishOutput);
+							$this->englishOutput = '';
+						}
+					}
+				}
+			} else {
+				if ($this->numberOutput) {
+					$this->englishOutput .= $this->numberOutput;
+				} else {
+					$this->prepend($this->englishOutput . $this->current);
+					$this->englishChars = '';
+				}
+			}
+		} else {
+			if (
+				$this->isNumber($this->current) && $this->next == '.' &&
+				$this->isNumber($this->getChar($index + 2))
+			) {
+				$this->englishOutput = $this->current;
+			} else {
+				$this->prepend($this->current);
+			}
+		}
+	}
+
+	protected function processSymbolsAndOtherChars()
+	{
+		if (
+			$this->isPersionSymbols($this->current) ||
+			($this->isPersianChar($this->prev) && $this->isPersianChar($this->next)) ||
+			($this->current == ' ' && $this->isPersianChar($this->next)) ||
+			($this->current == ' ' && $this->isPersianChar($this->prev))
+		) {
+			if ($this->eOutput) {
+				$this->prepend($this->eOutput);
+				$this->eOutput = '';
+			}
+
+			$this->prepend($this->current);
+		} else {
+			$this->eOutput .= $this->current;
+
+			if ($this->isPersianChar($this->next) || $this->next == '') {
+				$this->prepend($this->eOutput);
+				$this->eOutput = '';
+			}
+		}
+	}
+
+	/**
+	 * @param $persianNumber
+	 */
+	protected function processNumber($persianNumber)
+	{
+		if ($persianNumber) {
+			$this->numberOutput .= $this->persianizeNumbers($this->current);
+		} else {
+			$this->numberOutput = $this->current;
+		}
+
+		$this->setCurrent('');
+	}
+
 	/**
 	 * Set the iterative string
 	 *
 	 * @param string $string
 	 */
-	private function setStringIterative($string)
+	protected function setStringIterative($string)
 	{
 		preg_match_all("/./u", $string, $match);
 		$this->iterative = $match[0];
@@ -458,7 +503,7 @@ class PersianStringDecorator {
 	 *
 	 * @return int
 	 */
-	private function stringLength()
+	protected function stringLength()
 	{
 		return count($this->iterative);
 	}
@@ -469,7 +514,7 @@ class PersianStringDecorator {
 	 * @param int $index
 	 * @return string
 	 */
-	private function getChar($index)
+	protected function getChar($index)
 	{
 		if (isset($this->iterative[$index])) {
 			return $this->iterative[$index];
@@ -484,7 +529,7 @@ class PersianStringDecorator {
 	 * @param $char
 	 * @return bool
 	 */
-	private function shouldBeIgnored($char)
+	protected function shouldBeIgnored($char)
 	{
 		return in_array($char, $this->ignorelist);
 	}
@@ -495,7 +540,7 @@ class PersianStringDecorator {
 	 * @param string $char
 	 * @return bool
 	 */
-	private function isPersianChar($char)
+	protected function isPersianChar($char)
 	{
 		return array_key_exists($char, $this->persianChars);
 	}
@@ -506,7 +551,7 @@ class PersianStringDecorator {
 	 * @param string $char
 	 * @return bool
 	 */
-	private function isDetachedChar($char)
+	protected function isDetachedChar($char)
 	{
 		return in_array($char, $this->detachChars);
 	}
@@ -517,7 +562,7 @@ class PersianStringDecorator {
 	 * @param string $char
 	 * @return bool
 	 */
-	private function isEnclosingChars($char)
+	protected function isEnclosingChars($char)
 	{
 		return in_array($char, $this->enclosingChars);
 	}
@@ -528,7 +573,7 @@ class PersianStringDecorator {
 	 * @param string $char
 	 * @return bool
 	 */
-	private function isNumber($char)
+	protected function isNumber($char)
 	{
 		return in_array($char, $this->numbers);
 	}
@@ -539,7 +584,7 @@ class PersianStringDecorator {
 	 * @param string $char
 	 * @return bool
 	 */
-	private function isEnglishChar($char)
+	protected function isEnglishChar($char)
 	{
 		return in_array(strtolower($char), $this->englishChars);
 	}
@@ -550,7 +595,7 @@ class PersianStringDecorator {
 	 * @param string $char
 	 * @return bool
 	 */
-	private function isSpaceOrDot($char)
+	protected function isSpaceOrDot($char)
 	{
 		return ($char == ' ' || $char == '.');
 	}
@@ -562,7 +607,7 @@ class PersianStringDecorator {
 	 * @param int $index
 	 * @return bool
 	 */
-	private function isFirstLoop($index)
+	protected function isFirstLoop($index)
 	{
 		return ($this->current != '' && $index == 0 && (!$this->isPersianChar($this->next) && $this->next != ' '));
 	}
@@ -573,7 +618,7 @@ class PersianStringDecorator {
 	 * @param string $char
 	 * @return bool
 	 */
-	private function isPersionSymbols($char)
+	protected function isPersionSymbols($char)
 	{
 		return in_array($char, $this->persianSymbols);
 	}
@@ -583,7 +628,7 @@ class PersianStringDecorator {
 	 *
 	 * @param string $char
 	 */
-	private function prepend($char)
+	protected function prepend($char)
 	{
 		$this->output = $char . $this->output;
 	}
@@ -594,7 +639,7 @@ class PersianStringDecorator {
 	 * @param string $char
 	 * @return string
 	 */
-	private function getFirstJoint($char)
+	protected function getFirstJoint($char)
 	{
 		if (isset($this->persianChars[$char])) {
 			return $this->persianChars[$char][2];
@@ -609,7 +654,7 @@ class PersianStringDecorator {
 	 * @param string $char
 	 * @return string
 	 */
-	private function getMiddleJoint($char)
+	protected function getMiddleJoint($char)
 	{
 		if (isset($this->persianChars[$char])) {
 			return $this->persianChars[$char][1];
@@ -624,7 +669,7 @@ class PersianStringDecorator {
 	 * @param string $char
 	 * @return string
 	 */
-	private function getLastJoint($char)
+	protected function getLastJoint($char)
 	{
 		if (isset($this->persianChars[$char])) {
 			return $this->persianChars[$char][0];
@@ -638,7 +683,7 @@ class PersianStringDecorator {
 	 *
 	 * @param string $char
 	 */
-	private function reverseEnclosing($char)
+	protected function reverseEnclosing($char)
 	{
 		$this->setCurrent($this->enclosingMap[$char]);
 	}
@@ -649,7 +694,7 @@ class PersianStringDecorator {
 	 * @param string $num
 	 * @return string
 	 */
-	private function persianizeNumbers($num)
+	protected function persianizeNumbers($num)
 	{
 		if (array_key_exists($num, $this->numberMap)) {
 			return $this->numberMap[$num];
@@ -658,7 +703,7 @@ class PersianStringDecorator {
 		return $num;
 	}
 
-	private function resetPointers()
+	protected function resetPointers()
 	{
 		$this->prev = null;
 		$this->next = null;
