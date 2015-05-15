@@ -1,6 +1,7 @@
 <?php namespace Quince\PersianGD;
 
 use Quince\PersianGD\Contracts\GDTool as GDToolContract;
+use Quince\PersianGD\Contracts\StringDecorator;
 use Quince\PersianGD\Exceptions\PersianDGException;
 
 class GDTool implements GDToolContract {
@@ -102,6 +103,13 @@ class GDTool implements GDToolContract {
 	 * @var resource
 	 */
 	protected $imageResource;
+
+	/**
+	 * The decorator to decorate strings before print them into image
+	 *
+	 * @var StringDecorator
+	 */
+	protected $decorator;
 
 	/**
 	 * @param array $options
@@ -238,6 +246,17 @@ class GDTool implements GDToolContract {
 	}
 
 	/**
+	 * @param StringDecorator $decorator
+	 * @return GDTool
+	 */
+	public function setDecorator(StringDecorator $decorator)
+	{
+		$this->decorator = $decorator;
+
+		return $this;
+	}
+
+	/**
 	 * Set class options
 	 *
 	 * @param array $options
@@ -286,6 +305,7 @@ class GDTool implements GDToolContract {
 	 */
 	public function build()
 	{
+		$this->initDecorator();
 		$this->initImage();
 		$this->generateColorAllocates();
 		$this->writeLines();
@@ -301,6 +321,16 @@ class GDTool implements GDToolContract {
 	protected function getAvailableOptions()
 	{
 		return array_keys(get_object_vars($this));
+	}
+
+	/**
+	 * Initalize decorator
+	 */
+	protected function initDecorator()
+	{
+		if (!isset($this->decorator) || is_null($this->decorator)) {
+			$this->decorator = new PersianStringDecorator();
+		}
 	}
 
 	/**
@@ -383,8 +413,6 @@ class GDTool implements GDToolContract {
 
 	protected function writeLines()
 	{
-		$gdHelper = new GDTool();
-
 		$verticalPos = $this->lineHeight;
 		foreach ($this->lines as $line) {
 			imagettftext(
@@ -395,7 +423,7 @@ class GDTool implements GDToolContract {
 				$verticalPos,
 				$this->fontColorAllocate,
 				$this->font,
-				$gdHelper->persianText($line)
+				$this->decorator->decorate($line)
 			);
 
 			$verticalPos += $this->lineHeight;
