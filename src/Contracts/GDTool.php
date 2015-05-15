@@ -110,4 +110,10 @@ interface GDTool {
 	 * Generate requested image
 	 */
 	public function build();
+
+	/**
+	 * @param StringDecorator $decorator
+	 * @return \Quince\PersianGD\GDTool
+	 */
+	public function setDecorator(StringDecorator $decorator);
 }
