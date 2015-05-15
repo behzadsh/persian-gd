@@ -201,15 +201,17 @@ class PersianStringDecorator {
 	 * @param bool   $rtl
 	 * @return string
 	 */
-	public function decorate($string, $persianNumbers = false, $rtl = true)
+	public function decorate($string, $persianNumbers = true, $rtl = true)
 	{
 		$this->setStringIterative($string);
 
 		for ($i = 0; $i < $this->stringLength(); $i++) {
 			$this->setPointers($i);
-			if ($this->process($i, $rtl, $persianNumbers)) {
-				continue;
-			}
+			$this->process($i, $rtl, $persianNumbers);
+		}
+
+		if ($this->englishOutput != '') {
+			$this->prepend($this->englishOutput);
 		}
 
 		return $this->output;
@@ -280,7 +282,7 @@ class PersianStringDecorator {
 					return true;
 				} // Both next and previous characters are persian character
 				elseif ($this->isPersianChar($this->prev) && $this->isPersianChar($this->next)) {
-					if ($this->isDetachedChar($this->prev && $this->isPersianChar($this->next))) {
+					if ($this->isDetachedChar($this->prev) && $this->isPersianChar($this->next)) {
 						$this->prepend($this->getFirstJoint($this->current));
 					} else {
 						$this->prepend($this->getMiddleJoint($this->current));
@@ -306,7 +308,8 @@ class PersianStringDecorator {
 				if ($this->isEnclosingChars($this->current)) {
 					$this->reverseEnclosing($this->current);
 				} // Check if current character is a number
-				elseif ($this->isNumber($this->current)) {
+
+				if ($this->isNumber($this->current)) {
 					if ($persianNumber) {
 						$this->numberOutput .= $this->persianizeNumbers($this->current);
 					} else {
@@ -314,9 +317,14 @@ class PersianStringDecorator {
 					}
 
 					$this->setCurrent('');
-				} else {
-					if ($this->isEnglishChar($this->current) || $this->isSpaceOrDot($this->current)) {
-						$this->englishOutput .= $this->current . $this->numbers;
+				}
+
+				if (!$this->isNumber($this->next)) {
+					if (
+						$this->isEnglishChar($this->current) ||
+						($this->isSpaceOrDot($this->current) && $this->englishOutput != '' && !$this->isPersianChar($this->next))
+					) {
+						$this->englishOutput .= $this->current . $this->numberOutput;
 
 						$this->setCurrent('');
 					} else {
@@ -368,7 +376,7 @@ class PersianStringDecorator {
 				} else {
 					if (
 						$this->isNumber($this->current) && $this->next == '.' &&
-					    $this->isNumber($this->getChar($index + 2))
+						$this->isNumber($this->getChar($index + 2))
 					) {
 						$this->englishOutput = $this->current;
 					} else {
@@ -378,7 +386,7 @@ class PersianStringDecorator {
 			} else {
 				if (
 					$this->isPersionSymbols($this->current) ||
-				    ($this->isPersianChar($this->prev) && $this->isPersianChar($this->next)) ||
+					($this->isPersianChar($this->prev) && $this->isPersianChar($this->next)) ||
 					($this->current == ' ' && $this->isPersianChar($this->next)) ||
 					($this->current == ' ' && $this->isPersianChar($this->prev))
 				) {
@@ -402,10 +410,6 @@ class PersianStringDecorator {
 		}
 
 		$this->resetPointers();
-
-		if ($this->englishChars != '') {
-			$this->prepend($this->englishChars);
-		}
 	}
 
 	/**
@@ -467,7 +471,7 @@ class PersianStringDecorator {
 	 */
 	private function getChar($index)
 	{
-		if (isset($index)) {
+		if (isset($this->iterative[$index])) {
 			return $this->iterative[$index];
 		}
 
