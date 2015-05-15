@@ -1,6 +1,8 @@
 <?php namespace Quince\PersianGD;
 
-class PersianStringDecorator {
+use Quince\PersianGD\Contracts\StringDecorator;
+
+class PersianStringDecorator implements StringDecorator {
 
 	/**
 	 * All persian characters with all types
