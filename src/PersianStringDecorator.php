@@ -315,11 +315,11 @@ class PersianStringDecorator implements StringDecorator {
 	protected function processPersianWord()
 	{
 		if (is_null($this->prev) || $this->prev == ' ' || !$this->isPersianChar($this->prev)) {
-			return $this->processPersianWordFirstChar();
+			$this->processPersianWordFirstChar();
 		} elseif ($this->isPersianChar($this->prev) && $this->isPersianChar($this->next)) {
-			return $this->processPersianWordMiddleChar();
+			$this->processPersianWordMiddleChar();
 		} elseif ($this->isPersianChar($this->prev) && !$this->isPersianChar($this->next)) {
-			return $this->processPersianWordLastChar();
+			$this->processPersianWordLastChar();
 		}
 	}
 
