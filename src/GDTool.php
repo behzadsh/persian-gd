@@ -69,49 +69,61 @@ class GDTool implements GDToolContract {
 	 */
 	protected $angle = 0;
 
-	/**
+    /**
 	 * The coordinates of the first character
 	 *
 	 * @var int
 	 */
 	protected $horizontalPosition = 10;
 
-	/**
+    /**
+     *  The coordinates of the first character
+     *
+     * @var int
+     */
+    protected $verticalPosition = 10;
+
+    /**
 	 * Line height of each line
 	 *
 	 * @var int
 	 */
 	protected $lineHeight = 25;
 
-	/**
+    /**
 	 * The font to be used to generate strings
 	 *
 	 * @var string
 	 */
 	protected $font;
 
-	/**
+    /**
 	 * Array of lines to generated
 	 *
 	 * @var array
 	 */
 	protected $lines = [];
 
-	/**
+    /**
 	 * GD image resource
 	 *
 	 * @var resource
 	 */
 	protected $imageResource;
 
-	/**
+    /**
 	 * The decorator to decorate strings before print them into image
 	 *
 	 * @var StringDecorator
 	 */
 	protected $decorator;
 
-	/**
+    /**
+     * @var bool
+     */
+    protected $useLocalNumber = true;
+
+    /**
 	 * @param array $options
 	 */
 	public function __construct(array $options = [])
@@ -234,16 +246,27 @@ class GDTool implements GDToolContract {
 		return $this;
 	}
 
-	/**
-	 * @param int $horizontalPosition
-	 * @return GDTool
-	 */
-	public function setHorizontalPosition($horizontalPosition)
-	{
-		$this->horizontalPosition = $horizontalPosition;
+    /**
+     * @param int $horizontalPosition
+     * @return GDTool
+     */
+    public function setHorizontalPosition($horizontalPosition)
+    {
+        $this->horizontalPosition = $horizontalPosition;
 
-		return $this;
-	}
+        return $this;
+    }
+
+    /**
+     * @param int $verticalPosition
+     * @return GDTool
+     */
+    public function setVerticalPosition($verticalPosition)
+    {
+        $this->verticalPosition = $verticalPosition;
+
+        return $this;
+    }
 
 	/**
 	 * @param StringDecorator $decorator
@@ -300,7 +323,15 @@ class GDTool implements GDToolContract {
 		return $this;
 	}
 
-	/**
+    /**
+     * @param boolean $useLocalNumber
+     */
+    public function setUseLocalNumber($useLocalNumber)
+    {
+        $this->useLocalNumber = $useLocalNumber;
+    }
+
+    /**
 	 * Generate requested image
 	 */
 	public function build()
@@ -313,7 +344,7 @@ class GDTool implements GDToolContract {
 		return $this->generate();
 	}
 
-	/**
+    /**
 	 * Get available options for class
 	 *
 	 * @return array
@@ -413,8 +444,8 @@ class GDTool implements GDToolContract {
 
 	protected function writeLines()
 	{
-		$verticalPos = $this->lineHeight;
-		foreach ($this->lines as $line) {
+        $verticalPos = $this->verticalPosition;
+		foreach ($this->lines as $dir => $line) {
 			imagettftext(
 				$this->imageResource,
 				$this->fontSize,
@@ -423,7 +454,7 @@ class GDTool implements GDToolContract {
 				$verticalPos,
 				$this->fontColorAllocate,
 				$this->font,
-				$this->decorator->decorate($line)
+				$this->decorator->decorate($line, $this->useLocalNumber)
 			);
 
 			$verticalPos += $this->lineHeight;
