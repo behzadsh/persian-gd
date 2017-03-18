@@ -329,6 +329,8 @@ class GDTool implements GDToolContract {
     public function setUseLocalNumber($useLocalNumber)
     {
         $this->useLocalNumber = $useLocalNumber;
+	
+	return $this;
     }
 
     /**
