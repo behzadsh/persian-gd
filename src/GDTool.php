@@ -438,9 +438,9 @@ class GDTool implements GDToolContract {
 		}
 
 		return [
-			'red'   => hexdec($red),
-			'green' => hexdec($green),
-			'blue'  => hexdec($blue),
+			hexdec($red),
+			hexdec($green),
+			hexdec($blue),
 		];
 	}
 
