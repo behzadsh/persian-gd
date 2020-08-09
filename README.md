@@ -5,7 +5,7 @@ PHP GD library for Persian text support
 
 Add persian-gd to your composer.json:
 
-```json
+```
 "require": {
   "quince/persian-gd": "~1.0"
 }
@@ -27,13 +27,13 @@ composer require quince/persian-gd ~1.0
 $gdTool = new Quince\PersianGD\GDTool();
 
 $gdTool->setFileName('/path/to/output/image')
-       ->addLine($myText)
+       ->addLine("سلام دنیا")
        ->build();
 ```
 
 ### Advanced Usage
 
-GDTool has many option that you can set them in two different way.
+GDTool has many options that you can set them in two different way.
 
 #### Setting GDTools options on construction
 
@@ -43,15 +43,15 @@ You can set the options while you're constructing a GDTool instance.
 <?php
 
 $gdTool = new Quince\PersianGD\GDTool([
-    'with' => 500,
+    'with' => 1200,
     'backgroundColor' => '#FFF000',
     'fontColor' => '#000000',
     // ...
 ]);
 
-$gdTool->addLine('Lorem ipsum dolor sit amet, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.')
-       ->addLine('Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi  ex ea commodo consequat.')
-       ->addLine('But I must explain to you how all this mistaken idea of denouncing pleasure and praising pain was born')
+$gdTool->addLine('لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ و با استفاده از طراحان گرافیک است.')
+       ->addLine('چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است و برای شرایط فعلی تکنولوژی مورد نیاز و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد.')
+       ->addLine('کتابهای زیادی در شصت و سه درصد گذشته، حال و آینده شناخت فراوان جامعه و متخصصان را می طلبد تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی و فرهنگ پیشرو در زبان فارسی ایجاد کرد.')
        ->build();
 ```
 
@@ -75,8 +75,8 @@ function foo(Quince\PersianGD\GDTool $gdTool) {
            ->setVerticalPosition(100)              // set position of start point from left or right of image - default: 10
            ->setUseLocalNumber(true)                // set weather use local (persian) numbers character or not - default: true
            ->setFileName('/path/to/output/image')   // set the path of output image
-           ->addLine('Lorem ipsum dolor sit amet, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.')
-           ->addLine('Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi  ex ea commodo consequat.')
+           ->addLine('لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ و با استفاده از طراحان گرافیک است.')
+           ->addLine('چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است و برای شرایط فعلی تکنولوژی مورد نیاز و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد.')
            ->build();
 
 }
@@ -92,13 +92,13 @@ You can pass an array of strings, and GDTool will print them in given order in c
 $gdTool = new Quince\PersianGD\GDTool();
 
 $gdTool->addLines([
-    'Lorem ipsum dolor sit amet, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-    'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi  ex ea commodo consequat.',
-    'But I must explain to you how all this mistaken idea of denouncing pleasure and praising pain was born'
+    'لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ و با استفاده از طراحان گرافیک است.',
+    'چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است و برای شرایط فعلی تکنولوژی مورد نیاز و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد.',
+    'کتابهای زیادی در شصت و سه درصد گذشته، حال و آینده شناخت فراوان جامعه و متخصصان را می طلبد تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی و فرهنگ پیشرو در زبان فارسی ایجاد کرد.',
 ])->setFileName('/path/to/output/image')->build();
 ```
 
-#### Outputing generating image
+#### Outputting generating image
 
 There may be a situation that you don't want to save generated image in a file, and you want for example return it as image response.
 
@@ -108,7 +108,7 @@ There may be a situation that you don't want to save generated image in a file, 
 $gdTool = new Quince\PersianGD\GDTool();
 
 $imageContent = $gdTool->setOutputImage(false)
-                       ->addLine('This is a sample text.')
+                       ->addLine('سلام دنیا!')
                        ->build();
 
 header('content-type', 'image/png');
