@@ -1,253 +1,273 @@
-<?php namespace Quince\PersianGD;
+<?php
+
+namespace Quince\PersianGD;
 
 use Quince\PersianGD\Contracts\GDTool as GDToolContract;
 use Quince\PersianGD\Contracts\StringDecorator;
-use Quince\PersianGD\Exceptions\PersianDGException;
+use Quince\PersianGD\Exceptions\PersianGDException;
 
-class GDTool implements GDToolContract {
-
-	/**
-	 * The canvas width
-	 *
-	 * @var int
-	 */
-	protected $width = 500;
-
-	/**
-	 * Output file name
-	 *
-	 * @var string
-	 */
-	protected $fileName;
-
-	/**
-	 * Flag for saving image or output
-	 *
-	 * @var bool
-	 */
-	protected $outputImage = false;
-
-	/**
-	 * Image background hexadecimal color code
-	 *
-	 * @var string
-	 */
-	protected $backgroundColor = '#FFFFFF';
-
-	/**
-	 * Image background color allocated code
-	 *
-	 * @var int
-	 */
-	protected $backgroundColorAllocate;
-
-	/**
-	 * Image font hexadecimal color code
-	 *
-	 * @var string
-	 */
-	protected $fontColor = '#000000';
-
-	/**
-	 * Image font color allocated code
-	 *
-	 * @var int
-	 */
-	protected $fontColorAllocate;
-
-	/**
-	 * Image font size in point
-	 *
-	 * @var int
-	 */
-	protected $fontSize = 12;
-
-	/**
-	 * Text angle in degrees
-	 *
-	 * @var int
-	 */
-	protected $angle = 0;
+class GDTool implements GDToolContract
+{
+    /**
+     * The canvas width.
+     *
+     * @var int
+     */
+    protected $width = 500;
 
     /**
-	 * The coordinates of the first character
-	 *
-	 * @var int
-	 */
-	protected $horizontalPosition = 10;
+     * Output file name.
+     *
+     * @var string
+     */
+    protected $fileName;
 
     /**
-     *  The coordinates of the first character
+     * Flag for saving image or output.
+     *
+     * @var bool
+     */
+    protected $outputImage = false;
+
+    /**
+     * Image background hexadecimal color code.
+     *
+     * @var string
+     */
+    protected $backgroundColor = '#FFFFFF';
+
+    /**
+     * Image background color allocated code.
+     *
+     * @var int
+     */
+    protected $backgroundColorAllocate;
+
+    /**
+     * Image font hexadecimal color code.
+     *
+     * @var string
+     */
+    protected $fontColor = '#000000';
+
+    /**
+     * Image font color allocated code.
+     *
+     * @var int
+     */
+    protected $fontColorAllocate;
+
+    /**
+     * Image font size in point.
+     *
+     * @var int
+     */
+    protected $fontSize = 12;
+
+    /**
+     * Text angle in degrees.
+     *
+     * @var int
+     */
+    protected $angle = 0;
+
+    /**
+     * The coordinates of the first character.
+     *
+     * @var int
+     */
+    protected $horizontalPosition = 10;
+
+    /**
+     *  The coordinates of the first character.
      *
      * @var int
      */
     protected $verticalPosition = 10;
 
     /**
-	 * Line height of each line
-	 *
-	 * @var int
-	 */
-	protected $lineHeight = 25;
+     * Line height of each line.
+     *
+     * @var int
+     */
+    protected $lineHeight = 25;
 
     /**
-	 * The font to be used to generate strings
-	 *
-	 * @var string
-	 */
-	protected $font;
+     * The font to be used to generate strings.
+     *
+     * @var string
+     */
+    protected $font;
 
     /**
-	 * Array of lines to generated
-	 *
-	 * @var array
-	 */
-	protected $lines = [];
+     * Array of lines to generated.
+     *
+     * @var array
+     */
+    protected $lines = [];
 
     /**
-	 * GD image resource
-	 *
-	 * @var resource
-	 */
-	protected $imageResource;
+     * GD image resource.
+     *
+     * @var resource
+     */
+    protected $imageResource;
 
     /**
-	 * The decorator to decorate strings before print them into image
-	 *
-	 * @var StringDecorator
-	 */
-	protected $decorator;
+     * The decorator to decorate strings before print them into image.
+     *
+     * @var StringDecorator
+     */
+    protected $decorator;
 
     /**
+     * Whether using local (Persian) numeric character or not .
+     *
      * @var bool
      */
     protected $useLocalNumber = true;
 
     /**
-	 * @param array $options
-	 */
-	public function __construct(array $options = [])
-	{
-		$this->setOptions($options);
-	}
-
-	/**
-	 * Set the image canvas width
-	 *
-	 * @param int $width
-	 * @return GDTool
-	 */
-	public function setWidth($width)
-	{
-		$this->width = $width;
-
-		return $this;
-	}
-
-	/**
-	 * Set the name of output image file
-	 *
-	 * @param string $fileName
-	 * @return GDTool
-	 */
-	public function setFileName($fileName)
-	{
-		$this->fileName = $fileName;
-
-		return $this;
-	}
-
-	/**
-	 * Set the condition of saving or outputing image
-	 *
-	 * @param boolean $outputImage
-	 * @return GDTool
-	 */
-	public function setOutputImage($outputImage)
-	{
-		$this->outputImage = $outputImage;
-
-		return $this;
-	}
-
-	/**
-	 * Set background color hexadecimal code
-	 *
-	 * @param string $backgroundColor
-	 * @return GDTool
-	 */
-	public function setBackgroundColor($backgroundColor)
-	{
-		$this->backgroundColor = $backgroundColor;
-
-		return $this;
-	}
-
-	/**
-	 * Set font color hexadecimal code
-	 *
-	 * @param string $fontColor
-	 * @return GDTool
-	 */
-	public function setFontColor($fontColor)
-	{
-		$this->fontColor = $fontColor;
-
-		return $this;
-	}
-
-	/**
-	 * Set font size
-	 *
-	 * @param int $fontSize
-	 * @return GDTool
-	 */
-	public function setFontSize($fontSize)
-	{
-		$this->fontSize = $fontSize;
-
-		return $this;
-	}
-
-	/**
-	 * Set height of each lines
-	 *
-	 * @param int $lineHeight
-	 * @return GDTool
-	 */
-	public function setLineHeight($lineHeight)
-	{
-		$this->lineHeight = $lineHeight;
-
-		return $this;
-	}
-
-	/**
-	 * Set the font to be used
-	 *
-	 * @param string $font
-	 * @return GDTool
-	 */
-	public function setFont($font)
-	{
-		$this->font = $font;
-
-		return $this;
-	}
-
-	/**
-	 * @param int $angle
-	 * @return GDTool
-	 */
-	public function setAngle($angle)
-	{
-		$this->angle = $angle;
-
-		return $this;
-	}
+     * The GDTool constructor.
+     *
+     * @param array $options
+     */
+    public function __construct(array $options = [])
+    {
+        $this->setOptions($options);
+    }
 
     /**
+     * Sets the image canvas width.
+     *
+     * @param int $width
+     *
+     * @return GDTool
+     */
+    public function setWidth($width)
+    {
+        $this->width = $width;
+
+        return $this;
+    }
+
+    /**
+     * Sets the name of output image file.
+     *
+     * @param string $fileName
+     *
+     * @return GDTool
+     */
+    public function setFileName($fileName)
+    {
+        $this->fileName = $fileName;
+
+        return $this;
+    }
+
+    /**
+     * Sets the condition of saving or outputting image.
+     *
+     * @param bool $outputImage
+     *
+     * @return GDTool
+     */
+    public function setOutputImage($outputImage)
+    {
+        $this->outputImage = $outputImage;
+
+        return $this;
+    }
+
+    /**
+     * Sets background color hexadecimal code.
+     *
+     * @param string $backgroundColor
+     *
+     * @return GDTool
+     */
+    public function setBackgroundColor($backgroundColor)
+    {
+        $this->backgroundColor = $backgroundColor;
+
+        return $this;
+    }
+
+    /**
+     * Sets the font to be used.
+     *
+     * @param string $font
+     *
+     * @return GDTool
+     */
+    public function setFont($font)
+    {
+        $this->font = $font;
+
+        return $this;
+    }
+
+    /**
+     * Sets font color hexadecimal code.
+     *
+     * @param string $fontColor
+     *
+     * @return GDTool
+     */
+    public function setFontColor($fontColor)
+    {
+        $this->fontColor = $fontColor;
+
+        return $this;
+    }
+
+    /**
+     * Sets font size.
+     *
+     * @param int $fontSize
+     *
+     * @return GDTool
+     */
+    public function setFontSize($fontSize)
+    {
+        $this->fontSize = $fontSize;
+
+        return $this;
+    }
+
+    /**
+     * Sets height of each lines.
+     *
+     * @param int $lineHeight
+     *
+     * @return GDTool
+     */
+    public function setLineHeight($lineHeight)
+    {
+        $this->lineHeight = $lineHeight;
+
+        return $this;
+    }
+
+    /**
+     * Sets the angle of the line.
+     *
+     * @param int $angle
+     *
+     * @return GDTool
+     */
+    public function setAngle($angle)
+    {
+        $this->angle = $angle;
+
+        return $this;
+    }
+
+    /**
+     * Sets the horizontal position of the text.
+     *
      * @param int $horizontalPosition
+     *
      * @return GDTool
      */
     public function setHorizontalPosition($horizontalPosition)
@@ -258,7 +278,10 @@ class GDTool implements GDToolContract {
     }
 
     /**
+     * Sets the vertical position of the text.
+     *
      * @param int $verticalPosition
+     *
      * @return GDTool
      */
     public function setVerticalPosition($verticalPosition)
@@ -268,213 +291,238 @@ class GDTool implements GDToolContract {
         return $this;
     }
 
-	/**
-	 * @param StringDecorator $decorator
-	 * @return GDTool
-	 */
-	public function setDecorator(StringDecorator $decorator)
-	{
-		$this->decorator = $decorator;
-
-		return $this;
-	}
-
-	/**
-	 * Set class options
-	 *
-	 * @param array $options
-	 */
-	public function setOptions(array $options)
-	{
-		foreach ($options as $option => $value) {
-			if (in_array($option, $this->getAvailableOptions())) {
-				$this->$option = $value;
-			}
-		}
-	}
-
-	/**
-	 * Add new string line to image
-	 *
-	 * @param string $line
-	 * @return $this
-	 */
-	public function addLine($line)
-	{
-		array_push($this->lines, $line);
-
-		return $this;
-	}
-
-	/**
-	 * Add multiple line to the list of lines to be generated
-	 *
-	 * @param array $lines
-	 * @return $this
-	 */
-	public function addLines(array $lines)
-	{
-		$lines = array_filter($lines, function ($line) {
-			return is_string($line);
-		});
-
-		$this->lines = array_merge($this->lines, $lines);
-
-		return $this;
-	}
-
     /**
-     * @param boolean $useLocalNumber
+     * Set whether using local (Persian) numeric character or not.
+     *
+     * @param bool $useLocalNumber
+     *
+     * @return GDTool
      */
     public function setUseLocalNumber($useLocalNumber)
     {
         $this->useLocalNumber = $useLocalNumber;
-	
-	return $this;
+
+        return $this;
     }
 
     /**
-	 * Generate requested image
-	 */
-	public function build()
-	{
-		$this->initDecorator();
-		$this->initImage();
-		$this->generateColorAllocates();
-		$this->writeLines();
+     * Sets the decorator.
+     *
+     * @param StringDecorator $decorator
+     *
+     * @return GDTool
+     */
+    public function setDecorator(StringDecorator $decorator)
+    {
+        $this->decorator = $decorator;
 
-		return $this->generate();
-	}
+        return $this;
+    }
 
     /**
-	 * Get available options for class
-	 *
-	 * @return array
-	 */
-	protected function getAvailableOptions()
-	{
-		return array_keys(get_object_vars($this));
-	}
+     * Sets class options.
+     *
+     * @param array $options
+     *
+     * @return GDTool
+     */
+    public function setOptions(array $options)
+    {
+        foreach ($options as $option => $value) {
+            if (in_array($option, $this->getAvailableOptions())) {
+                $this->$option = $value;
+            }
+        }
 
-	/**
-	 * Initalize decorator
-	 */
-	protected function initDecorator()
-	{
-		if (!isset($this->decorator) || is_null($this->decorator)) {
-			$this->decorator = new PersianStringDecorator();
-		}
-	}
+        return $this;
+    }
 
-	/**
-	 * Initialize image canvas
-	 */
-	protected function initImage()
-	{
-		$this->imageResource = imagecreate($this->width, $this->getHeight());
-	}
+    /**
+     * Add new string line to image.
+     *
+     * @param string $line
+     *
+     * @return GDTool
+     */
+    public function addLine($line)
+    {
+        array_push($this->lines, $line);
 
-	/**
-	 * Calculate and return the height of canvas
-	 *
-	 * @return int
-	 */
-	protected function getHeight()
-	{
-		$lineCounts = count($this->lines);
+        return $this;
+    }
 
-		return ($lineCounts + 1) * $this->lineHeight;
-	}
+    /**
+     * Add multiple line to the list of lines to be generated.
+     *
+     * @param array $lines
+     *
+     * @return GDTool
+     */
+    public function addLines(array $lines)
+    {
+        $lines = array_filter($lines, function ($line) {
+            return is_string($line);
+        });
 
-	protected function generateColorAllocates()
-	{
-		$this->generateBackgroundAllocate();
-		$this->generateFontAllocate();
-	}
+        $this->lines = array_merge($this->lines, $lines);
 
-	protected function generateBackgroundAllocate()
-	{
-		list($red, $green, $blue) = $this->getRGBValues($this->backgroundColor);
-		$this->backgroundColorAllocate = imagecolorallocate(
-			$this->imageResource, $red, $green, $blue
-		);
-	}
+        return $this;
+    }
 
-	protected function generateFontAllocate()
-	{
-		list($red, $green, $blue) = $this->getRGBValues($this->fontColor);
-		$this->fontColorAllocate = imagecolorallocate(
-			$this->imageResource, $red, $green, $blue
-		);
-	}
+    /**
+     * Generate requested image.
+     *
+     *
+     * @return false|string
+     */
+    public function build()
+    {
+        $this->initDecorator();
+        $this->initImage();
+        $this->generateColorAllocates();
+        $this->writeLines();
 
-	/**
-	 * Get RGB value of a hexadecimal color code
-	 *
-	 * @param string $hexColor
-	 * @return array
-	 * @throws PersianDGException
-	 */
-	protected function getRGBValues($hexColor)
-	{
-		if (substr($hexColor, 0, 1) != '#') {
-			throw new PersianDGException('Invalid hexadecimal color code provided');
-		}
+        return $this->generate();
+    }
 
-		$hexColor = substr($hexColor, 1);
+    /**
+     * Get available options for class.
+     *
+     *
+     * @return array
+     */
+    protected function getAvailableOptions()
+    {
+        return array_keys(get_object_vars($this));
+    }
 
-		if (strlen($hexColor) == 3) {
-			$red = str_repeat(substr($hexColor, 0, 1), 2);
-			$green = str_repeat(substr($hexColor, 1, 1), 2);
-			$blue = str_repeat(substr($hexColor, 2, 1), 2);
-		} else {
-			if (strlen($hexColor) == 6) {
-				$red = substr($hexColor, 0, 2);
-				$green = substr($hexColor, 2, 2);
-				$blue = substr($hexColor, 4, 2);
-			} else {
-				throw new PersianDGException('Invalid hexadecimal color code provided');
-			}
-		}
+    /**
+     * Initialize decorator.
+     */
+    protected function initDecorator()
+    {
+        if (!isset($this->decorator) || is_null($this->decorator)) {
+            $this->decorator = new PersianStringDecorator();
+        }
+    }
 
-		return [
-			hexdec($red),
-			hexdec($green),
-			hexdec($blue),
-		];
-	}
+    /**
+     * Initialize image canvas.
+     */
+    protected function initImage()
+    {
+        $this->imageResource = imagecreate($this->width, $this->getHeight());
+    }
 
-	protected function writeLines()
-	{
+    /**
+     * Calculate and return the height of canvas.
+     *
+     *
+     * @return int
+     */
+    protected function getHeight()
+    {
+        $lineCounts = count($this->lines);
+
+        return ($lineCounts + 1) * $this->lineHeight;
+    }
+
+    protected function generateColorAllocates()
+    {
+        $this->generateBackgroundAllocate();
+        $this->generateFontAllocate();
+    }
+
+    protected function generateBackgroundAllocate()
+    {
+        list($red, $green, $blue) = $this->getRGBValues($this->backgroundColor);
+        $this->backgroundColorAllocate = imagecolorallocate(
+            $this->imageResource,
+            $red,
+            $green,
+            $blue
+        );
+    }
+
+    protected function generateFontAllocate()
+    {
+        list($red, $green, $blue) = $this->getRGBValues($this->fontColor);
+        $this->fontColorAllocate = imagecolorallocate(
+            $this->imageResource,
+            $red,
+            $green,
+            $blue
+        );
+    }
+
+    /**
+     * Get RGB value of a hexadecimal color code.
+     *
+     * @param string $hexColor
+     *
+     * @throws PersianGDException
+     *
+     * @return array
+     */
+    protected function getRGBValues($hexColor)
+    {
+        if (substr($hexColor, 0, 1) != '#') {
+            throw new PersianGDException('Invalid hexadecimal color code provided');
+        }
+
+        $hexColor = substr($hexColor, 1);
+
+        if (strlen($hexColor) == 3) {
+            $red = str_repeat(substr($hexColor, 0, 1), 2);
+            $green = str_repeat(substr($hexColor, 1, 1), 2);
+            $blue = str_repeat(substr($hexColor, 2, 1), 2);
+        } else {
+            if (strlen($hexColor) == 6) {
+                $red = substr($hexColor, 0, 2);
+                $green = substr($hexColor, 2, 2);
+                $blue = substr($hexColor, 4, 2);
+            } else {
+                throw new PersianGDException('Invalid hexadecimal color code provided');
+            }
+        }
+
+        return [
+            hexdec($red),
+            hexdec($green),
+            hexdec($blue),
+        ];
+    }
+
+    protected function writeLines()
+    {
         $verticalPos = $this->verticalPosition;
-		foreach ($this->lines as $dir => $line) {
-			imagettftext(
-				$this->imageResource,
-				$this->fontSize,
-				$this->angle,
-				$this->horizontalPosition,
-				$verticalPos,
-				$this->fontColorAllocate,
-				$this->font,
-				$this->decorator->decorate($line, $this->useLocalNumber)
-			);
+        foreach ($this->lines as $dir => $line) {
+            imagettftext(
+                $this->imageResource,
+                $this->fontSize,
+                $this->angle,
+                $this->horizontalPosition,
+                $verticalPos,
+                $this->fontColorAllocate,
+                $this->font,
+                $this->decorator->decorate($line, $this->useLocalNumber)
+            );
 
-			$verticalPos += $this->lineHeight;
-		}
-	}
+            $verticalPos += $this->lineHeight;
+        }
+    }
 
-	protected function generate()
-	{
-		if ($this->outputImage) {
-			ob_start();
-			imagepng($this->imageResource);
+    protected function generate()
+    {
+        if ($this->outputImage) {
+            ob_start();
+            imagepng($this->imageResource);
 
-			return ob_get_clean();
-		}
+            return ob_get_clean();
+        }
 
-		imagepng($this->imageResource, $this->fileName);
+        imagepng($this->imageResource, $this->fileName);
 
-		return $this->fileName;
-	}
-
+        return $this->fileName;
+    }
 }
