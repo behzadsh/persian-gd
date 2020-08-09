@@ -17,5 +17,8 @@
     },
     "require": {
         "ext-gd": "*"
+    },
+    "require-dev": {
+        "styleci/cli": "^0.6.2"
     }
 }
